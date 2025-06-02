@@ -54,7 +54,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 <main class="container my-5">
     <?php if ($noticia): ?>
         <?php
-            $baseUrlImagens = "https://adocaodigital-fhhwbkdtd3g5e6gn.brazilsouth-01.azurewebsites.net/";
+            $baseUrlImagens = "http://localhost:5133/";
             $fotoUrl = $baseUrlImagens . ($noticia['Foto'] ?? 'default.jpg');
         ?>
         <div class="card shadow">

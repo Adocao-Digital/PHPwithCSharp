@@ -1,5 +1,5 @@
 <?php
-	require_once "Rotas.php";
+	require_once "rotas.php";
 	require_once 'vendor/autoload.php';
 	
 	//autoload das classes

@@ -1,104 +1,99 @@
 <?php
-class UsuarioDAO extends ConexaoMongo {
-    public function __construct() {
+
+class UsuarioDAO extends ConexaoMongo
+{
+    protected $db;
+
+    public function __construct()
+    {
         parent::__construct();
     }
 
-    // Método para inserir um novo usuário no MongoDB
-    public function inserir(Usuario $usuario) {
-        try {
-            $collection = $this->db->Usuarios;
-
-            // Cria o documento a ser inserido
-            $document = [
-                'nome' => $usuario->nome,
-                'email' => $usuario->email,
-                'cpf' => $usuario->cpf,
-                'senha' => $usuario->senha,
-                'telefone' => $usuario->telefone,
-                'data_nascimento' => $usuario->dataNascimento->format('Y-m-d'),
-                'foto' => $usuario->foto,
-                'ativo' => $usuario->ativo,
-                'endereco' => [
-                    'rua' => $usuario->endereco->rua,
-                    'numero' => $usuario->endereco->numero,
-                    'bairro' => $usuario->endereco->bairro,
-                    'cidade' => $usuario->endereco->cidade,
-                    'estado' => $usuario->endereco->estado,
-                    'cep' => $usuario->endereco->cep
-                ]
-            ];
-
-            $result = $collection->insertOne($document);
-            return "Usuário cadastrado com sucesso! ID: " . $result->getInsertedId();
-        } catch (Exception $e) {
-            echo "Erro ({$e->getCode()}): " . $e->getMessage();
-            die();
-        }
+    public function getDb()
+    {
+        return $this->db;
     }
 
-    // Método para fazer o login do usuário
-    public function login(Usuario $usuario) {
-        try {
-            $collection = $this->db->Usuarios;
+    // Verifica se email ou cpf já existem (para cadastro)
+    public function login(Usuario $usuario)
+    {
+        $filtros = [];
 
-            // Busca o usuário pelo e-mail
-            $user = $collection->findOne(['email' => $usuario->email]);
-
-            if ($user && password_verify($usuario->senha, $user['senha'])) {
-                return $user; // Login válido
-            } else {
-                return null; // Email não encontrado ou senha inválida
-            }
-        } catch (Exception $e) {
-            echo "Erro ({$e->getCode()}): " . $e->getMessage();
-            die();
+        if (!empty($usuario->Email)) {
+            $filtros['Email'] = $usuario->Email;
         }
+
+        if (!empty($usuario->Cpf)) {
+            $filtros['Cpf'] = $usuario->Cpf;
+        }
+
+        if (empty($filtros)) {
+            return false;
+        }
+
+        // Se busca pelo email, primeiro busca por email
+        if (isset($filtros['Email']) && !isset($filtros['Cpf'])) {
+            $user = $this->db->usuarios->findOne(['Email' => $filtros['Email']]);
+            return $user ? $user : false;
+        }
+
+        // Se busca pelo cpf, primeiro busca por cpf
+        if (isset($filtros['Cpf']) && !isset($filtros['Email'])) {
+            $user = $this->db->usuarios->findOne(['Cpf' => $filtros['Cpf']]);
+            return $user ? $user : false;
+        }
+
+        // Se vier os dois, verifica se algum existe
+        $user = $this->db->usuarios->findOne([
+            '$or' => [
+                ['Email' => $filtros['Email']],
+                ['Cpf' => $filtros['Cpf']]
+            ]
+        ]);
+
+        return $user ? $user : false;
     }
 
-    public function cadastro(Usuario $usuario) {
-        try {
-            $collection = $this->db->Usuarios;
+    public function cadastro(Usuario $usuario)
+    {
+        // Verifica duplicidade email e cpf
+        $exists = $this->db->usuarios->findOne([
+            '$or' => [
+                ['Email' => $usuario->Email],
+                ['Cpf' => $usuario->Cpf]
+            ]
+        ]);
 
-            // Verifica se já existe um usuário com o mesmo email ou CPF
-            $usuarioExistente = $collection->findOne([
-                '$or' => [
-                    ['email' => $usuario->email],
-                    ['cpf' => $usuario->cpf]
-                ]
-            ]);
+        if ($exists) {
+            return "E-mail ou CPF já cadastrado";
+        }
 
-            if ($usuarioExistente) {
-                return "Já existe um usuário com esse e-mail ou CPF.";
-            }
+        $doc = [
+            'Nome' => $usuario->Nome,
+            'Email' => $usuario->Email,
+            'Cpf' => $usuario->Cpf,
+            'Senha' => $usuario->Senha,
+            'Telefone' => $usuario->Telefone,
+            'Foto' => $usuario->Foto,
+            'Ativo' => $usuario->Ativo,
+            'DataNascimento' => new MongoDB\BSON\UTCDateTime($usuario->DataNascimento->getTimestamp() * 1000),
+            'Endereco' => [
+                'Rua' => $usuario->Endereco->Rua,
+                'Numero' => $usuario->Endereco->Numero,
+                'Bairro' => $usuario->Endereco->Bairro,
+                'Cidade' => $usuario->Endereco->Cidade,
+                'Estado' => $usuario->Endereco->Estado,
+                'Cep' => $usuario->Endereco->Cep,
+            ],
+            'Role' => 'USER' // Default role ao cadastrar
+        ];
 
-            // Prepara o documento para inserção
-            $document = [
-                'nome' => $usuario->nome,
-                'email' => $usuario->email,
-                'cpf' => $usuario->cpf,
-                'senha' => password_hash($usuario->senha, PASSWORD_DEFAULT),
-                'telefone' => $usuario->telefone,
-                'data_nascimento' => $usuario->dataNascimento->format('Y-m-d'),
-                'foto' => $usuario->foto,
-                'ativo' => $usuario->ativo,
-                'endereco' => [
-                    'rua' => $usuario->endereco->rua,
-                    'numero' => $usuario->endereco->numero,
-                    'bairro' => $usuario->endereco->bairro,
-                    'cidade' => $usuario->endereco->cidade,
-                    'estado' => $usuario->endereco->estado,
-                    'cep' => $usuario->endereco->cep
-                ]
-            ];
+        $result = $this->db->usuarios->insertOne($doc);
 
-            $result = $collection->insertOne($document);
-
-            return "Usuário cadastrado com sucesso! ID: " . $result->getInsertedId();
-        } catch (Exception $e) {
-            return "Erro ({$e->getCode()}): " . $e->getMessage();
+        if ($result->getInsertedCount() === 1) {
+            return "Cadastro realizado com sucesso!";
+        } else {
+            return "Erro ao cadastrar usuário.";
         }
     }
-
 }
-?>

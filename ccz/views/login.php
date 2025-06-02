@@ -3,15 +3,14 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
-// Redireciona se o usuário já estiver logado
-if (isset($_SESSION['nome'])) {
-    header("Location: /ccz/");
-    exit;
-}
-
 // Evita erros caso as variáveis não estejam definidas
 $mensagem = $mensagem ?? "";
 $msg = $msg ?? ["", ""];
+
+if (UsuarioController::usuarioAutenticado()) {
+    header("Location: /ccz/");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -34,11 +33,9 @@ $msg = $msg ?? ["", ""];
         <div class="conteudo-login">
             <div class="login">
                 <h1>Fazer Login</h1>
-                <form class="formulario" action="/ccz/login" method="POST">
-                    <?php if (!empty($mensagem)): ?>
-                        <div class="alert alert-danger" role="alert">
-                            <?= htmlspecialchars($mensagem) ?>
-                        </div>
+                <form class="formulario" action="/ccz/controllers/AutenticacaoController.php" method="POST">
+                    <?php if (isset($_SESSION['erro_login'])): ?>
+                        <div class="alert alert-danger"><?= $_SESSION['erro_login']; unset($_SESSION['erro_login']); ?></div>
                     <?php endif; ?>
 
                     <div class="controle">

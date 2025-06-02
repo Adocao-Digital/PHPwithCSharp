@@ -25,6 +25,10 @@ class ComposerStaticInitb20a1100f6b627ff48cf1b9a91789dad
         array (
             'MongoDB\\' => 8,
         ),
+        'F' => 
+        array (
+            'Firebase\\JWT\\' => 13,
+        ),
         'B' => 
         array (
             'Brick\\Math\\' => 11,
@@ -47,6 +51,10 @@ class ComposerStaticInitb20a1100f6b627ff48cf1b9a91789dad
         'MongoDB\\' => 
         array (
             0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
+        ),
+        'Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
         'Brick\\Math\\' => 
         array (

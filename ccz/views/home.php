@@ -46,7 +46,7 @@
             </div>
             <div class="carousel-inner">
                 <?php
-                    $baseUrlImagens = "https://adocaodigital-fhhwbkdtd3g5e6gn.brazilsouth-01.azurewebsites.net/";
+                    $baseUrlImagens = "http://localhost:5133/";
                 ?>
                 <?php
                     use Ramsey\Uuid\Uuid;
@@ -57,7 +57,7 @@
                     <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                         <a href="/ccz/noticia?id=<?= urlencode($uuid) ?>" class="text-decoration-none text-white">
                             <?php 
-                                $baseUrlImagens = "https://adocaodigital-fhhwbkdtd3g5e6gn.brazilsouth-01.azurewebsites.net/";
+                                $baseUrlImagens = "http://localhost:5133/";
                                 $fotoUrl = $baseUrlImagens . ($n['Foto'] ?? 'default.jpg');
                             ?>
                             <img src="<?= htmlspecialchars($fotoUrl) ?>" class="d-block w-100 carousel-image" alt="Imagem da notícia">
@@ -100,17 +100,19 @@
                 </div>
             </div>
             <?php
-            if(!isset($_SESSION['nome'])){
-            echo "<div class='card'>
-                <a href='/ccz/cadastro'>
-                    <img src='img/registrese.png' alt='Imagem cadastro'>
-                </a>
-                <div>
-                    <a href='/ccz/cadastro' class='stretched-link'>
-                        <p>Faça seu cadastro</p>
-                    </a>
-                </div>
-            </div>";
+             if (!isset($_SESSION['usuario_email'])) {
+             echo 
+             "<div class='card'>
+                 <a href='/ccz/cadastro'>
+                     <img src='img/registrese.png' alt='Imagem cadastro'>
+                 </a>
+                 <div>
+                     <a href='/ccz/cadastro' class='stretched-link'>
+                         <p>Faça seu cadastro</p>
+                     </a>
+                 </div>
+            </div>
+            ";
             }
             ?>
             <div class="card">
